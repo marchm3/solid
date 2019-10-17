@@ -1,7 +1,8 @@
 package speakerrecognition.impl;
 
 
-import java.math.*;
+import speakerrecognition.math.Matrixes;
+import speakerrecognition.math.Statistics;
 
 
 // https://commons.apache.org/proper/commons-math/apidocs/org/apache/commons/math3/distribution/fitting/MultivariateNormalMixtureExpectationMaximization.html

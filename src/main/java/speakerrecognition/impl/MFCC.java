@@ -2,6 +2,7 @@ package speakerrecognition.impl;
 
 
 import org.jtransforms.fft.DoubleFFT_1D;
+import speakerrecognition.math.Matrixes;
 
 
 public class MFCC {
@@ -30,7 +31,7 @@ public class MFCC {
 		this.frame_shift = setFrameShift(fs);
 		window = hamming(frame_len);
 		
-		//this.melfb_coeffs = melfb(melfilter_bands, 256, fs); //!!!!!!!!!!!!!!!! USUN¥Æ !!!!!!!!!!!!!!!!!
+		//this.melfb_coeffs = melfb(melfilter_bands, 256, fs); //!!!!!!!!!!!!!!!! USUNï¿½ï¿½ !!!!!!!!!!!!!!!!!
 		this.melfb_coeffs = melfb(melfilter_bands, fft_size, fs);
 		
 		this.D1 = dctmatrix(melfilter_bands);

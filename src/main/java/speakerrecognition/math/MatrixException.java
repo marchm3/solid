@@ -1,28 +1,28 @@
-package speakerrecognition.impl;
+package speakerrecognition.math;
 
 
-public class MyException extends Exception {
+public class MatrixException extends Exception {
 
     /**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
 
-	public MyException() {
+	public MatrixException() {
         // TODO Auto-generated constructor stub
     }
 
-    public MyException(String message) {
+    public MatrixException(String message) {
         super(message);
         // TODO Auto-generated constructor stub
     }
 
-    public MyException(Throwable cause) {
+    public MatrixException(Throwable cause) {
         super(cause);
         // TODO Auto-generated constructor stub
     }
 
-    public MyException(String message, Throwable cause) {
+    public MatrixException(String message, Throwable cause) {
         super(message, cause);
         // TODO Auto-generated constructor stub
     }

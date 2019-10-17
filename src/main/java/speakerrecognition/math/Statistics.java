@@ -1,4 +1,4 @@
-package speakerrecognition.impl;
+package speakerrecognition.math;
 
 
 public final class Statistics {
@@ -53,24 +53,6 @@ public final class Statistics {
 	    }
 	    
 	    return temp;
-	}
-	
-	public static double getStdDev(double[] data)
-	{
-	    return Math.sqrt(getVariance(data));
-	}
-	
-	public static double[] getStdDev(double[][] data) 
-	{
-		//int numOfRows = data.length;
-		int numOfCols = data[0].length;
-		
-		double[] temp = getVariance(data);
-		for(int i=0;i<numOfCols;i++){
-			temp[i] = Math.sqrt(temp[i]);
-		}
-		return temp;
-		
 	}
 
 }
