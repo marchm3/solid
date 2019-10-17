@@ -1,7 +1,7 @@
-package speakerrecognition;
+package speakerrecognition.logger;
 
 import speakerrecognition.math.MatrixException;
-import speakerrecognition.impl.SpeakerData;
+import speakerrecognition.speaker.SpeakerData;
 
 import java.io.IOException;
 import java.util.List;

@@ -1,4 +1,4 @@
-package speakerrecognition.impl;
+package speakerrecognition.speaker;
 
 public class SpeakerData {
     public double[][] means=null;

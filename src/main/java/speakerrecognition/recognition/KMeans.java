@@ -1,4 +1,4 @@
-package speakerrecognition.impl;
+package speakerrecognition.recognition;
 
 
 import speakerrecognition.math.Matrixes;

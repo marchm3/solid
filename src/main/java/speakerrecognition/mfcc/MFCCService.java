@@ -1,45 +1,29 @@
-package speakerrecognition.impl;
+package speakerrecognition.mfcc;
 
 
 import org.jtransforms.fft.DoubleFFT_1D;
 import speakerrecognition.math.Matrixes;
 
 
-public class MFCC {
-	
-	private int frame_len;
-	private int frame_shift;
-	private int fft_size;// = 256;
-	private static int melfilter_bands = 40;
-	private static int mfcc_num = 13;
-	private static double power_spectrum_floor = 0.0001;
-	private static double pre_emph = 0.95;
-	private double[] window = null; 
-	private double[][] M = null;
-	//private double[] CF = null;
-	private double[][] melfb_coeffs = null;
-	private double[][] mfcc_coeffs = null;
-	private int[] samples = null; 
-	private int fs;
-	private double[][] D1 = null;
-	
-	public MFCC(int[] x, int y){
-		this.fs = y;
-		this.samples = x;
-		this.frame_len = 256;//setFrameLen(fs); !!!!!!!!!!!!! ZMIANA !!!!!!!!!!!!!!!!!!!!!!
-		this.fft_size = this.frame_len;
-		this.frame_shift = setFrameShift(fs);
-		window = hamming(frame_len);
-		
-		//this.melfb_coeffs = melfb(melfilter_bands, 256, fs); //!!!!!!!!!!!!!!!! USUN�� !!!!!!!!!!!!!!!!!
-		this.melfb_coeffs = melfb(melfilter_bands, fft_size, fs);
-		
-		this.D1 = dctmatrix(melfilter_bands);
-		
-		if(this.melfb_coeffs==null) System.out.println("Cannot initialize melfilter bank");
+public class MFCCService {
+
+	public double[][] getMFCC(int[] x, int y){
+		MFCCData mfccData = new MFCCData();
+		mfccData.fs = y;
+		mfccData.samples = x;
+		mfccData.frame_len = 256;
+		mfccData.fft_size = mfccData.frame_len;
+		mfccData.frame_shift = setFrameShift(mfccData.fs);
+		mfccData.window = hamming(mfccData.frame_len);
+
+		mfccData.melfb_coeffs = melfb(mfccData, mfccData.melfilter_bands, mfccData.fft_size, mfccData.fs);
+
+		mfccData.D1 = dctmatrix(mfccData, mfccData.melfilter_bands);
+
+		if(mfccData.melfb_coeffs==null) System.out.println("Cannot initialize melfilter bank");
+		extract_MFCC(mfccData);
+		return mfccData.mfcc_coeffs;
 	}
-	
-/////////// setters for MFCC parameters ///////////////////////
 	
 	private int setFrameLen(int sample_rate){
 		return (int) (0.025*(double)(sample_rate));
@@ -57,17 +41,10 @@ public class MFCC {
 		return window_temp;
 	}
 
-////////////////////////////////////////////////////////////////
-
-//////// getters for MFCC results/////////////////////////////
-	double[][] getMFCC(){
-		extract_MFCC();
-		return this.mfcc_coeffs;
-	}
 
 ///////////////// computation of mel filterbank ////////////////
 
-	private double[][] melfb(int p, int n, int fs){
+	private double[][] melfb(MFCCData mfccData, int p, int n, int fs){
 		// p - number of filterbanks
 		// n - length of fft
 		// fs - sample rate 
@@ -105,18 +82,18 @@ public class MFCC {
 			fp[i] = Math.floor(pf[i]);
 			pm[i] = pf[i] - fp[i];
 		}
-		
-		this.M = new double[p][1+fn2];
+
+		mfccData.M = new double[p][1+fn2];
 		int r=0;
 		
 		for(int i=b2-1;i<b4;i++){
 			r = (int)fp[i]-1;
-			this.M[r][i+1] += 2* (1-pm[i]);
+			mfccData.M[r][i+1] += 2* (1-pm[i]);
 		}
 		
 		for(int i=0;i<b3; i++){
 			r = (int)fp[i];
-			this.M[r][i+1] += 2* pm[i];
+			mfccData.M[r][i+1] += 2* pm[i];
 		}
 		
 		/////////// normalization part //////////
@@ -125,8 +102,8 @@ public class MFCC {
 		double[] temp_row = null;
 		double row_energy = 0;
 		//System.out.println(Integer.toString(M.length));
-		for (int i=0;i<this.M.length;i++){
-			temp_row = this.M[i];
+		for (int i=0;i<mfccData.M.length;i++){
+			temp_row = mfccData.M[i];
 			row_energy = energy(temp_row);
 			if(row_energy < 0.0001)
 				temp_row[i] = i;
@@ -140,59 +117,59 @@ public class MFCC {
 					row_energy = energy(temp_row);
 				}
 			}
-			this.M[i] = temp_row;
+			mfccData.M[i] = temp_row;
 			
 		}
 		
 	
 		
-		return this.M;		
+		return mfccData.M;
 	}
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
-	private void extract_MFCC(){
+	private void extract_MFCC(MFCCData mfccData){
 		// https://gist.github.com/jongukim/4037243
 		//http://dp.nonoo.hu/projects/ham-dsp-tutorial/05-sine-fft/
 		
-		if(this.samples!=null){
-			DoubleFFT_1D fftDo = new DoubleFFT_1D(this.frame_len);
-			double[] fft1 = new double[this.frame_len * 2];
-			double[] fft_final = new double[this.frame_len/2+1];
+		if(mfccData.samples!=null){
+			DoubleFFT_1D fftDo = new DoubleFFT_1D(mfccData.frame_len);
+			double[] fft1 = new double[mfccData.frame_len * 2];
+			double[] fft_final = new double[mfccData.frame_len/2+1];
 			//int[] x = this.samples;
-			int frames_num = (int)((double)(this.samples.length - this.frame_len)/(double)(this.frame_shift))+1;
-			this.mfcc_coeffs = new double[frames_num][MFCC.mfcc_num];
-			double[] frame = new double[this.frame_len];
+			int frames_num = (int)((double)(mfccData.samples.length - mfccData.frame_len)/(double)(mfccData.frame_shift))+1;
+			mfccData.mfcc_coeffs = new double[frames_num][mfccData.mfcc_num];
+			double[] frame = new double[mfccData.frame_len];
 							
 			for(int i=0;i<frames_num;i++){
 				
-				for(int j=0;j<this.frame_len;j++){
-					frame[j] = (double)this.samples[i*this.frame_shift+j];
+				for(int j=0;j<mfccData.frame_len;j++){
+					frame[j] = (double)mfccData.samples[i*mfccData.frame_shift+j];
 				}
 				
 				try{
-					frame = Matrixes.row_mul(frame, window);
+					frame = Matrixes.row_mul(frame, mfccData.window);
 				
-					frame = preemphasis(frame);
-					System.arraycopy(frame, 0, fft1, 0, this.frame_len);
+					frame = preemphasis(mfccData, frame);
+					System.arraycopy(frame, 0, fft1, 0, mfccData.frame_len);
 					fftDo.realForwardFull(fft1);
 					/*for(double d: fft1) {
 			          System.out.println(d);
 					}*/
 					
-					for(int k=0;k<(this.frame_len/2+1);k++){
+					for(int k=0;k<(mfccData.frame_len/2+1);k++){
 						fft_final[k] = Math.pow(Math.sqrt(Math.pow(fft1[k*2],2)+Math.pow(fft1[k*2+1],2)), 2);
 						
-						if(fft_final[k]<power_spectrum_floor) fft_final[k]=power_spectrum_floor;
+						if(fft_final[k]<mfccData.power_spectrum_floor) fft_final[k]=mfccData.power_spectrum_floor;
 					}
 					
-					double[] dot_prod = Matrixes.multiplyByMatrix(this.melfb_coeffs, fft_final);
+					double[] dot_prod = Matrixes.multiplyByMatrix(mfccData.melfb_coeffs, fft_final);
 					for(int j=0;j<dot_prod.length;j++){
 						dot_prod[j] = Math.log(dot_prod[j]);
 					}
 					//double[][]D1 = dctmatrix(melfilter_bands);
-					dot_prod = Matrixes.multiplyByMatrix(this.D1, dot_prod);
-					this.mfcc_coeffs[i] = dot_prod;
+					dot_prod = Matrixes.multiplyByMatrix(mfccData.D1, dot_prod);
+					mfccData.mfcc_coeffs[i] = dot_prod;
 				}
 				catch(Exception myEx)
 		        {
@@ -234,16 +211,16 @@ public class MFCC {
 		return en;
 		}
 		
-	private double[] preemphasis(double[] x){
+	private double[] preemphasis(MFCCData mfccData, double[] x){
 		double[] y = new double[x.length];
 		y[0] = x[0];
 		for(int i=1;i<x.length;i++){
-			y[i] = x[i]-MFCC.pre_emph*x[i-1];
+			y[i] = x[i]-mfccData.pre_emph*x[i-1];
 		}
 		return y;
 	}
 
-	private double[][] dctmatrix(int n){
+	private double[][] dctmatrix(MFCCData mfccData, int n){
 		double[][] d1 = new double[n][n];
 		double[][] x = Matrixes.meshgrid_ox(n);
 		double[][] y = Matrixes.meshgrid_oy(n);
@@ -272,8 +249,8 @@ public class MFCC {
 			d1[0][i] /= Math.sqrt(2);
 		}
 		
-		double[][] d = new double[MFCC.mfcc_num][n];
-		for(int i=1;i<MFCC.mfcc_num+1;i++){
+		double[][] d = new double[mfccData.mfcc_num][n];
+		for(int i=1;i<mfccData.mfcc_num+1;i++){
 			for(int j=0;j<n;j++){
 				d[i-1][j] = d1[i][j];
 			}

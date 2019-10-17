@@ -1,4 +1,4 @@
-package speakerrecognition.impl;
+package speakerrecognition.speaker;
 import speakerrecognition.math.Matrixes;
 import speakerrecognition.math.MatrixException;
 import speakerrecognition.math.Statistics;
@@ -9,7 +9,7 @@ public class SpeakerService implements Serializable{
 
 	private static final long serialVersionUID = 1L;
 	
-	static double getScore(SpeakerData speakerData, double[][] data) throws MatrixException {
+	public static double getScore(SpeakerData speakerData, double[][] data) throws MatrixException {
 		double score = 0;
 		double[] logprob = null;
 		double[][] lpr = log_multivariate_normal_density(speakerData, data);

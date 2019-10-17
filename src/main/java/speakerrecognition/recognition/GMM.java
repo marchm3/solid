@@ -1,4 +1,4 @@
-package speakerrecognition.impl;
+package speakerrecognition.recognition;
 
 
 import speakerrecognition.math.Matrixes;
@@ -12,14 +12,10 @@ public class GMM {
 	private static final double EPS = 2.2204460492503131e-16;
 	private int n_init=10;
 	private int n_iter = 10;
-	private int numOfRows;
 	private int numOfCols;
-	private int maxIter;
-	private double threshold;
 	private int numOfComponents;
 	private double[][] observations;
 	private double min_covar = 0.001;
-	private boolean converged = false; 
 	private double current_log_likelihood = 0;
 	private double prev_log_likelihood = Double.NaN;
 	private double tol = 0.001;
@@ -27,9 +23,9 @@ public class GMM {
 	private double[] log_likelihoods = null;
 	private double[][] responsibilities = null;
 	
-	private double[][] means = null;
-	private double[] weights = null;
-	private double[][] covars = null;
+	private double[][] means;
+	private double[] weights;
+	private double[][] covars;
 	
 	private double[][] best_means = null;
 	private double[] best_weights = null;
@@ -40,34 +36,11 @@ public class GMM {
 	
 	GMM(double[][] data, int compNum){
 		this.observations = data;
-		this.numOfRows = data.length;
 		this.numOfCols = data[0].length;
 		this.numOfComponents = compNum;
 		this.means = new double[compNum][data[0].length];
 		this.weights = new double[data.length];
 		this.covars = new double[compNum][data[0].length];
-		//this.gmm = new MultivariateNormalMixtureExpectationMaximization(data);
-	}
-	
-	GMM(double[][] data, int compNum, int maxIt){
-		/*this.observations = data;
-		this.numOfRows = data.length;
-		this.numOfCols = data[0].length;
-		this.numOfComponents = compNum;*/
-		this(data, compNum);
-		this.maxIter = maxIt;
-		//this.gmm = new MultivariateNormalMixtureExpectationMaximization(data);
-	}
-	
-	GMM(double[][] data, int compNum, int maxIt, double thr){
-		/*this.observations = data;
-		this.numOfRows = data.length;
-		this.numOfCols = data[0].length;
-		this.numOfComponents = compNum;*/
-		this(data, compNum);
-		this.maxIter = maxIt;
-		this.threshold = thr;
-		
 		//this.gmm = new MultivariateNormalMixtureExpectationMaximization(data);
 	}
 	
@@ -100,7 +73,6 @@ public class GMM {
 					if(!Double.isNaN(prev_log_likelihood)){
 						change = Math.abs(current_log_likelihood - prev_log_likelihood);
 						if(change<this.tol){
-							this.converged = true;
 							break;
 						}
 							

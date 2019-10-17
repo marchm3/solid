@@ -1,10 +1,10 @@
-package speakerrecognition;
+package speakerrecognition.recognition;
 
 import java.io.IOException;
 import java.util.List;
 
 import speakerrecognition.math.MatrixException;
-import speakerrecognition.impl.SpeakerData;
+import speakerrecognition.speaker.SpeakerData;
 
 public interface SpeakerRecognition {
 
